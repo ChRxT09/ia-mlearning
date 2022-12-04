@@ -1,70 +1,51 @@
 // reduz os valores de entrada para um unico valor
 function somatoria(arr = []) {
-	return arr.reduce((anterior, posterior) => anterior + posterior);
+	return arr.reduce((a, b) => a + b);
 }
 
 // calcula a diferenca do valor obtido com o valor esperado
 // verifica o erro do valor obtido em relacao ao valor esperado
 // otimizacao dos valores dos pesos das iteracoes das proximas propagacoes
-function descidaGradiente(entrada = 0) {
-	return entrada * (1 - entrada);
+function descidaGradiente(input = 0) {
+	return input * (1 - input);
 }
 
-// calcula os pesos da feed Forward no comeco
-const randPesos = () => Math.random();
+function feedForward(inputs = [], target = 0, epochs = 1) {
+	if (target <= 0) target = 0.1;
+	else if (target > 1) target = 1;
 
-// calcula a tangente hiperbolica de um valor
-const tangHiperbolica = (value) => Math.tanh(value);
+	let weights = [];
 
-const valorAbsoluto = (value) => Math.abs(value);
-
-function feedForward(entradas = [], alvo = 0, epoca = 1) {
-	if (alvo <= 0) {
-		alvo = 0.1;
-	} else if (alvo > 1) {
-		alvo = 1;
+	for (let _ of inputs) {
+		weights.push(Math.random());
 	}
 
-	let pesos = [];
+	for (let i = 1; i <= epochs; i++) {
+		let multiply = [];
+		for (let j = 0; j < inputs.length; j++) {
+			if (inputs[j] <= 0) inputs[j] = 0.1;
+			multiply.push(inputs[j] * weights[j]);
+		}
+		let sum = somatoria(multiply);
+		let output = parseFloat(Math.tanh(sum)).toFixed(4);
 
-	for (let i; i < entradas.length; i++) {
-		pesos.push(randPesos());
-	}
+		let error = parseFloat(Math.abs(target - output)).toFixed(4);
 
-	for (i = 1; i <= epoca; i++) {
-		let valoresMultiplicados = [];
-		for (let j = 0; j < entradas.length; j++) {
-			if (entradas[j] <= 0) {
-				inputs[j] = 0.1;
-			}
-			valoresMultiplicados.push(entradas[j] * pesos[j]);
+		for (let j = 0; j < inputs.length; j++) {
+			weights[j] += inputs[j] * descidaGradiente(error);
 		}
 
-		let sum = somatoria(valoresMultiplicados);
-
-		// tangente hiperbólica: vai formatar os dados dentro de um intervalo ]-1, 1 [
-		let saida = tangHiperbolica(sum);
-
-		// vai arredondar o valor para 4 casas decimais
-		//motivos estéticos
-		saida = parseFloat(saida).toFixed(4);
-
-		let erro = valorAbsoluto(alvo - saida);
-		erro = parseFloat(erro).toFixed(4);
-
-		for(let j = 0; j < entradas.length; j ++){
-			pesos[j] += entradas[j] * descidaGradiente(erro)
-		}
-
-		let _epoca = i.toString().padStart(7, '0');
+		let epoch = i.toString().padStart(7, '0');
 
 		console.log(`
-			\nepoca: ${epoca},
-			\ntaxa de erro: ${erro},
-			\nsaida: ${saida}
+		\n epoca: ${epoch}
+		\n taxa de erro: ${error}
+		\n saída: ${output}
 		`)
 
 	}
 }
 
-export default { feedForward };
+const resultado = feedForward([0], 0.1, 10);
+
+console.log(resultado);
